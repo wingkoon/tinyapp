@@ -1,4 +1,6 @@
-//This template is used to display all the URLs and their shortened forms
+
+<%- include('partials/_header') %>
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -7,6 +9,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
+    <form method="POST" action="/urls/9sm5xK/delete">...</form>
 
     <!-- Bootstrap CSS -->
     <link
@@ -23,8 +26,9 @@
       <table class="table">
         <thead>
           <tr>
-            <th scope="col">Short URL ID</th>
-            <th scope="col">Long URL</th>
+            <th scope="col"><font size="5">Short URL ID</font></th>
+            <th scope="col"><font size="5">Long URL</font></th>
+            <th scope="col"><font size="5">Delete</font></th>
           </tr>
         </thead>
         <tbody>
@@ -32,6 +36,8 @@
             <tr>
               <td><%= id %></td>
               <td><%= urls[id] %></td>
+              <td><button style="Border-color:red; background-color:white; 
+              color:red;"><font size="5"> Delete </font></button></td>
             </tr>
           <% } %>
         </tbody>
@@ -56,4 +62,3 @@
   </body>
 </html>
 
-<%- include('partials/header') %>

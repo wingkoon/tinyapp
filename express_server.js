@@ -8,9 +8,14 @@ const hashedPassword = bcrypt.hashSync(password, 10);
 app.set("view engine", "ejs");
 
 
-const urlDatabase = {
+let urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
+};
+
+const generateRandomString = function() {
+  const result = Math.random().toString(36).substring(2,8);
+  return result;
 };
 
 app.use(express.urlencoded({ extended: true }));
@@ -33,27 +38,37 @@ app.get("/urls.json", (req, res) => {
   });
 
   app.post("/urls", (req, res) => {
-    console.log(req.body); // Log the POST request body to the console
-    res.send("Ok"); // Respond with 'Ok' (we will replace this)
-  });
+    //console.log(urlDatabase);
+    let longURL = req.body.longURL;
+    if (longURL === "") {
+      res.send("Null input");
+      res.redirect(`urls/new`);
+    } else {
+      let id = generateRandomString();
+      urlDatabase[id] = longURL;
+      console.log(urlDatabase);
+      console.log(id);
+      res.send("longURL registered");
+      res.redirect(`/urls/${id}`);
+    }
+  }); 
 
   app.get("/hello", (req, res) => {
     const templateVars = { greeting: "Hello World!" };
     res.render(`hello_world`, templateVars);
   });
 
+  app.get("/urls/new", (req, res) => {
+    let longURL = urlDatabase[req.params.id];
+    const templateVars = { id: req.params.id, longURL: longURL };
+    res.render("urls_new", templateVars);
+  }); 
+
   app.get("/urls/:id", (req, res) => {
     let longURL = urlDatabase[req.params.id];
     const templateVars = { id: req.params.id, longURL: longURL };
-    res.render(`urls_new`, templateVars);
+    res.render(`urls_show`, templateVars);
   });
-
-  function generateRandomString() {};
-
-  app.get("/urls/new", (req, res) => {
-    res.render(`urls_new.ejs`);
-  }); 
-
   
   //POST /urls/:id/delete
   

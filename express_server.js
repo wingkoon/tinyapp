@@ -37,26 +37,6 @@ app.get("/urls.json", (req, res) => {
     res.render(`urls_index.ejs`, templateVars);
   });
 
-  app.post("/urls", (req, res) => {
-    //console.log(urlDatabase);
-    let longURL = req.body.longURL;
-    if (longURL === "") {
-      res.send("Null input");
-      res.redirect(`urls/new`);
-    } else {
-      let id = generateRandomString();
-      urlDatabase[id] = longURL;
-      console.log(urlDatabase);
-      console.log(id);
-      res.send("longURL registered");
-      res.redirect(`/urls/${id}`);
-    }
-  }); 
-
-  app.get("/hello", (req, res) => {
-    const templateVars = { greeting: "Hello World!" };
-    res.render(`hello_world`, templateVars);
-  });
 
   app.get("/urls/new", (req, res) => {
     let longURL = urlDatabase[req.params.id];
@@ -67,10 +47,45 @@ app.get("/urls.json", (req, res) => {
   app.get("/urls/:id", (req, res) => {
     let longURL = urlDatabase[req.params.id];
     const templateVars = { id: req.params.id, longURL: longURL };
+    res.render("urls/:id", templateVars);
+  }); 
+  
+  app.get("/hello", (req, res) => {
+    const templateVars = { greeting: "Hello World!" };
+    res.render(`hello_world`, templateVars);
+  });
+
+  app.get("/urls/:id", (req, res) => {
+    let longURL = urlDatabase[req.params.id];
+    const templateVars = { id: req.params.id, longURL: longURL };
     res.render(`urls_show`, templateVars);
   });
-  
+
+  app.post("/urls/:id", (req, res) => {
+    let longURL = urlDatabase[req.params.id];
+    const templateVars = { id: req.params.id, longURL: longURL };
+    res.render(`urls_show`, templateVars);
+  });
+
   //POST /urls/:id/delete
+  app.post("/urls/:id/delete", (req, res) => {
+    delete urlDatabase[req.params.id];
+    res.redirect('/urls');
+  });
+  
+  app.post("/urls", (req, res) => {
+    //console.log(urlDatabase);
+    let longURL = req.body.longURL;
+    if (longURL === "") {
+      res.send("Null input");
+      res.redirect(`urls/new`);
+    } else {
+      let id = generateRandomString();
+      urlDatabase[id] = longURL;
+      res.send("longURL registered");
+      res.redirect('/urls');
+    }
+  }); 
   
   //curl -i http://localhost:8080/hello
 

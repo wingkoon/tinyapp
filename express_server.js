@@ -10,16 +10,50 @@ const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 app.set("view engine", "ejs");
 
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
+});
 
 let urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 
+const users = {
+  "kk2023": {
+    id: "kk2023",
+    email: "apple@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+  "gg2024": {
+    id: "gg2024",
+    email: "orange@example.com",
+    password: "dishwasher-funk",
+  },
+};
+
 const generateRandomString = function() {
   const result = Math.random().toString(36).substring(2,8);
   return result;
 };
+
+app.get('/register', (req, res) => {
+  res.render(`register.ejs`);
+});
+
+app.post(`/register`, (req, res) => {
+  const id = generateRandomString();
+  console.log(id);
+  console.log(req.body.email);
+  console.log(req.email);
+  let templ = {};
+  templ.id = id;
+  templ.email = req.body.email;
+  templ.password = req.body.password;
+  users[id] = templ;
+  console.log(users);
+  res.redirect(`/urls`);
+})
 
 // Sign-in endpoint
 app.post('/sign-in', (req, res) => {
@@ -47,9 +81,7 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
-});
+
 
 app.get("/urls.json", (req, res) => {
     res.json(urlDatabase);

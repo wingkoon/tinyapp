@@ -9,6 +9,7 @@ const cookieParser = require('cookie-parser');
 // Set cookie-parser as a middleware
 app.use(cookieParser());
 app.set("view engine", "ejs");
+app.use(express.urlencoded({ extended: true }));
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
@@ -20,14 +21,14 @@ let urlDatabase = {
 };
 
 const users = {
-  "kk2023": {
-    id: "kk2023",
-    email: "apple@example.com",
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
     password: "purple-monkey-dinosaur",
   },
-  "gg2024": {
-    id: "gg2024",
-    email: "orange@example.com",
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
     password: "dishwasher-funk",
   },
 };
@@ -37,6 +38,10 @@ const generateRandomString = function() {
   return result;
 };
 
+//const password = "purple-monkey-dinosaur"; // found in the req.body object
+//const hashedPassword = bcrypt.hashSync(password, 10);
+bcrypt.compareSync("purple-monkey-dinosaur", hashedPassword);
+
 app.get('/register', (req, res) => {
   res.render(`register.ejs`);
 });
@@ -44,8 +49,8 @@ app.get('/register', (req, res) => {
 app.post(`/register`, (req, res) => {
   const id = generateRandomString();
   console.log(id);
-  console.log(req.body.email);
-  console.log(req.email);
+  console.log(req.body);
+ // console.log(req.email);
   let templ = {};
   templ.id = id;
   templ.email = req.body.email;
@@ -55,11 +60,16 @@ app.post(`/register`, (req, res) => {
   res.redirect(`/urls`);
 })
 
+app.get('/login', (req, res) => {
+  res.render(`login.ejs`);
+});
+
 // Sign-in endpoint
 app.post('/sign-in', (req, res) => {
   console.log("hi");
   // Set the cookie with whatever value you wish
   res.cookie('user_id', userObject.id);
+  req.session.user_id = "some value";
 
   // Finish the request-response cycle with 
   // res.redirect(), res.send() or res.json():
@@ -75,7 +85,6 @@ app.get('/', (req, res) => {
   return res.send('There is a cookie stored!');
 });
 
-app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
   res.send("Hello!");

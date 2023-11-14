@@ -1,3 +1,31 @@
+<style>
+.button {
+  border: 20px solid black;
+  color: black;
+}
+.container {
+  display:flexbox;
+  flex-direction:row;
+  margin-top:50px;
+}
+.item1 {
+  align-items:left;
+  column-width: 100px;
+}
+.item2 {
+  align-items:left;
+  margin-left: 200px;
+  width: 400px;
+}
+
+.item3 {
+  margin-left: 450px;
+  border: 3px solid black;
+}
+
+</style>
+
+
 <header>
     <nav class="navbar navbar-expand-md navbar-dark bg-success">
       <a class="navbar-brand" href="/urls">TinyApp</a>
@@ -14,8 +42,16 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
         <div class="navbar-nav">
-          <a class="nav-item nav-link" href="/urls">My URLs</a>
-          <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
+          <a class="nav-item container item1 nav-link" href="/urls">My URLs</a>
+          <a class="nav-item container item1 nav-link" href="/urls/new">Create New URL</a>
+          <form class="form-inline" action="/sign-in" method="POST"> 
+          <input
+            class="form-control container item2"
+            type="text"
+            name="username"
+            placeholder="Username" />
+          <button type="submit" class="button item3 btn" href="/sign-in">Login</button>
+          <a href="/sign-in"></a>
         </div>
       </div>
     </nav>

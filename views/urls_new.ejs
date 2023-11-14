@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -33,7 +34,8 @@
             placeholder="http://"
             style="width: 300px; margin: 1em"
           />
-          <button type="submit" class="btn btn-primary">Submit</button>
+          <button type="submit" class="btn btn-primary" href="/urls">Submit</button>
+          <a href="/urls"></a>
         </div>
       </form>
     </main>
@@ -56,6 +58,3 @@
   </body>
 </html>
 
-app.get("/urls/new", (req, res) => {
-    res.render("urls_new");
-  });

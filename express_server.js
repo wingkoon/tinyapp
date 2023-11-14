@@ -64,28 +64,6 @@ app.get('/login', (req, res) => {
   res.render(`login.ejs`);
 });
 
-// Sign-in endpoint
-app.post('/sign-in', (req, res) => {
-  console.log("hi");
-  // Set the cookie with whatever value you wish
-  res.cookie('user_id', userObject.id);
-  req.session.user_id = "some value";
-
-  // Finish the request-response cycle with 
-  // res.redirect(), res.send() or res.json():
-  res.redirect('/');
-})
-
-// Home endpoint
-app.get('/', (req, res) => {
-  // We can read cookies with req.cookies.cookieName
-  const idUser = req.cookies.user_id;
-
-  if (!idUser) return res.send('No cookie stored...');
-  return res.send('There is a cookie stored!');
-});
-
-
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -173,3 +151,24 @@ app.get("/urls.json", (req, res) => {
     };
     res.render("urls_index", templateVars);
   });
+
+  // Sign-in endpoint
+app.post('/sign-in', (req, res) => {
+  console.log("hi");
+  // Set the cookie with whatever value you wish
+  res.cookie('user_id', userObject.id);
+  req.session.user_id = "some value";
+
+  // Finish the request-response cycle with 
+  // res.redirect(), res.send() or res.json():
+  res.redirect('/');
+})
+
+// Home endpoint
+app.get('/', (req, res) => {
+  // We can read cookies with req.cookies.cookieName
+  const idUser = req.cookies.user_id;
+
+  if (!idUser) return res.send('No cookie stored...');
+  return res.send('There is a cookie stored!');
+});

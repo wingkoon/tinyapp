@@ -21,16 +21,16 @@ app.listen(PORT, () => {
 
 
 //Homepage
-app.get('/', (req, res) => {
-      res.send('<h1>Welcome to the home page!</h1> Please login <a href="/login">here<a/>');
-});
-
-
+app.get("/", (req, res) => {
+    if (users[req.session.user_id]) {
+      res.redirect("/urls");
+    } else {
+      res.redirect("/login");
+    }
+  });
 
 app.get('/urls', (req, res) => {
     const userID = req.session.user_id; //only logged in users will have a cookie
-    console.log(5, userID);
-    console.log(5, urlDatabase);
     const user = users[userID];
     const userURLs = urlsForUser(userID, urlDatabase);
 
@@ -46,7 +46,7 @@ app.get('/urls', (req, res) => {
     res.render("urls_index", templateVars);
 });
 
-//If user is not logged in. Redirects to login page
+
 app.get('/urls/new', (req, res) => {
     const userID = req.session.user_id;
 
@@ -119,16 +119,18 @@ app.post("/urls", (req, res) => {
    });
 
 
+app.get("/u/:id", (req, res) => {
+    if (urlDatabase[req.params.id]) {
+      let longURL = urlDatabase[req.params.id];
+      console.log(longURL);
+      res.redirect(longURL);
+    } else {
+      res
+        .status(401)
+        .send("This URL does not exist");
+    }
+  });
 
-app.get('/u/:id', (req, res) => {
-    const url = urlDatabase[req.params.id];
-console.log('url', url);
-if (url === undefined) {
-    // short url undefined
-    return res.status(400).send('<p>This Url does not exist!</p>');
-}
-    res.redirect(url.longURL);
-});
 
 
 app.post("/urls/:id/delete", (req, res) => {

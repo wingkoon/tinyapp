@@ -17,8 +17,10 @@
               <button type="Submit" class="btn btn-outline-primary">Logout</button>
           </form>
           <% } else {%>
-              <span style="padding-right: 20px"><a href="/login"> Login</a></span>
-              <a href="/register">Register</a>
+            <div class="navbar-nav">
+                <a class="nav-item nav-link" href= "/login" type="submit" >LOGIN</a>
+                <a class="nav-item nav-link" href= "/register" type="submit" >REGISTER</a>
+              </div>
 
               <% } %>
   </nav>

@@ -62,7 +62,7 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  postUser(email, password, users, "login", req, res);
+  postUser(email, password, users, "/login", req, res);
 });
 
 
@@ -83,17 +83,17 @@ app.get('/register', (req, res) => {
 app.post('/register', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  postUser(email, password, users, "register", req, res);
+  postUser(email, password, users, "/register", req, res);
 });
 
 //Refactor login and register function
 const postUser = function(email, password, users, action, req, res) {
   let userID;
+  if (!email || !password) {
+    return res.status(400).send(`<p>Please provide email and password</p><a href="${action}">here</a>`);
+  }
   const user = getUserByEmail(email, users);
-  if (action === "login") {
-    if (!email || !password) {
-      return res.status(400).send('<p>Please provide email and password</p><a href=/login>here</a>');
-    }
+  if (action === "/login") {
     if (!user) {
       return res.status(403).send('<p>No user with that email found</p><a href=/login>here</a>');
     }
@@ -103,9 +103,6 @@ const postUser = function(email, password, users, action, req, res) {
     }
     userID = user.id;
   } else {
-    if (!email || !password) {
-      return res.status(400).send('<p>Please provide email and password</p><a href=/register>here</a>');
-    }
     if (user) {
       return res.status(400).send('<p>That email is alredy in use. Please provide a different email.</p><a href=/register>here</a>');
     }
@@ -152,17 +149,15 @@ app.post("/urls", (req, res) => {
     return res.status(400).send('<p>Please login to continue.</p><a href="/login">Login</a>');
   }
   let longURL = req.body.longURL;
-  if (longURL === "") {
-    return res.send('<h3>Null input! Please type in valid URL!<h3> Login <a href="/urls/new">Go back</a>');
-  } else if (!isValidUrl(longURL)) {
-    res.send('<h3>Invalid input! Please type in valid URL!<h3> Login <a href="/urls/new">Go back</a>');
-  } else {
+  const link = "/urls/new";
+  if (!checkUrl(longURL, link, res)) {
     let id = generateRandomString();
     urlDatabase[id] = longURL;
     req.session.user_id = userID;
     res.send('<h3>longURL registered! Go to homepage.<h3><a href="/urls">Click here</a>');
   }
 });
+
   
 app.get("/urls/:id/edit", (req, res) => {
   const loggedInUser = req.session.user_id;
@@ -176,18 +171,24 @@ app.get("/urls/:id/edit", (req, res) => {
 
 app.post("/urls/:id/edit", (req, res) => {
   let longURL = req.body.longURL;
-  if (longURL === "") {
-    res.send("Null input");
-    res.redirect(`urls/:id`);
-  } else if (!isValidUrl(longURL)) {
-    res.send("Invalid input");
-    res.redirect(`urls/:id`);
-  } else {
-    let id = req.params.id;
+  let id = req.params.id;
+  const link = "/urls/" + id;
+  if (!checkUrl(longURL, link, res)) {
     urlDatabase[id] = longURL;
     res.send('<h3>longURL edited! Go to homepage.<h3><a href="/urls">Click here</a>');
   }
 });
+
+//Check the Url validity
+//Share by create and edit usages
+const checkUrl = function(longURL, link, res) {
+  if (longURL === "") {
+    return res.send(`<h3>Null input! Please type in valid URL!<h3> Login <a href="${link}">Go back</a>`);
+  } else if (!isValidUrl(longURL)) {
+    return res.send(`<h3>Invalid input! Please type in valid URL!<h3> Login <a href="${link}">Go back</a>`);
+  }
+  return false;
+};
 
 //Redirect to the corresponding URL pages
 app.get("/u/:id", (req, res) => {

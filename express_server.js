@@ -3,7 +3,7 @@ const app = express();
 const morgan = require('morgan');
 const bcrypt = require('bcryptjs');
 const cookieSession = require('cookie-session');
-const { getUserByEmail, generateRandomString, urlsForUser } = require('./helpers');
+const { getUserByEmail, generateRandomString, isValidUrl, urlsForUser } = require('./helpers');
 const { urlDatabase, users } = require('./database');
 const PORT = 8080;
 
@@ -62,21 +62,7 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  if (!email || !password) {
-    return res.status(400).send('<p>Please provide email and password</p>');
-  }
-  const user = getUserByEmail(email, users);
-  if (!user) {
-    return res.status(403).send('<p>No user with that email found</p>');
-  }
-  const result = bcrypt.compareSync(password, user.password);
-  if (!result) {
-    return res.status(403).send('<p>Invalid Password</p>');
-  }
-
-  //create a new cookie using cookie-session
-  req.session.user_id = user.id;
-  res.redirect('/urls');
+  postUser(email, password, users, "login", req, res);
 });
 
 
@@ -97,26 +83,44 @@ app.get('/register', (req, res) => {
 app.post('/register', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  if (!email || !password) {
-    return res.status(400).send('Please provide email and password.');
-  }
-  const user = getUserByEmail(email, users);
-  if (user) {
-    return res.status(400).send('That email is alredy in use. Please provide a different email.');
-  }
-  const salt = bcrypt.genSaltSync(10);
-  const hash = bcrypt.hashSync(password, salt);
-  const userID = generateRandomString();
-  users[userID] = {
-      id: userID,
-      email: req.body.email,
-      password: hash
-  };
-
-  req.session.user_id = userID;
-  res.redirect('/urls');
+  postUser(email, password, users, "register", req, res);
 });
 
+//Refactor login and register function
+const postUser = function(email, password, users, action, req, res) {
+  let userID;
+  const user = getUserByEmail(email, users);
+  if (action === "login") {
+    if (!email || !password) {
+      return res.status(400).send('<p>Please provide email and password</p><a href=/login>here</a>');
+    }
+    if (!user) {
+      return res.status(403).send('<p>No user with that email found</p><a href=/login>here</a>');
+    }
+    const result = bcrypt.compareSync(password, user.password);
+    if (!result) {
+      return res.status(403).send('<p>Invalid Password</p><a href=/login>here</a>');
+    }
+    userID = user.id;
+  } else {
+    if (!email || !password) {
+      return res.status(400).send('<p>Please provide email and password</p><a href=/register>here</a>');
+    }
+    if (user) {
+      return res.status(400).send('<p>That email is alredy in use. Please provide a different email.</p><a href=/register>here</a>');
+    }
+    const salt = bcrypt.genSaltSync(10);
+    const hash = bcrypt.hashSync(password, salt);
+    userID = generateRandomString();
+    users[userID] = {
+        id: userID,
+        email: email,
+        password: hash
+    };
+  }
+  req.session.user_id = userID;
+  res.redirect('/urls');
+};
 
 //Create new URL
 app.get('/urls/new', (req, res) => {
@@ -145,18 +149,18 @@ app.get("/urls/:id", (req, res) => {
 app.post("/urls", (req, res) => {
   const userID = req.session.user_id;
   if (!userID) {
-    return res.status(400).send('<p>Please login to continue.</p>');
+    return res.status(400).send('<p>Please login to continue.</p><a href="/login">Login</a>');
   }
   let longURL = req.body.longURL;
   if (longURL === "") {
-    res.send("Null input");
-    res.redirect(`urls/new`);
+    return res.send('<h3>Null input! Please type in valid URL!<h3> Login <a href="/urls/new">Go back</a>');
+  } else if (!isValidUrl(longURL)) {
+    res.send('<h3>Invalid input! Please type in valid URL!<h3> Login <a href="/urls/new">Go back</a>');
   } else {
     let id = generateRandomString();
     urlDatabase[id] = longURL;
     req.session.user_id = userID;
-    res.send("longURL registered");
-    res.redirect('urls');
+    res.send('<h3>longURL registered! Go to homepage.<h3><a href="/urls">Click here</a>');
   }
 });
   
@@ -175,11 +179,13 @@ app.post("/urls/:id/edit", (req, res) => {
   if (longURL === "") {
     res.send("Null input");
     res.redirect(`urls/:id`);
+  } else if (!isValidUrl(longURL)) {
+    res.send("Invalid input");
+    res.redirect(`urls/:id`);
   } else {
     let id = req.params.id;
     urlDatabase[id] = longURL;
-    res.send("longURL edited");
-    res.redirect('/urls');
+    res.send('<h3>longURL edited! Go to homepage.<h3><a href="/urls">Click here</a>');
   }
 });
 

@@ -1,6 +1,7 @@
 //finds the user by email
 const { urlDatabase, users } = require('./database');
 
+
 const getUserByEmail = function(email, database) {
   for (let key in database) {
     if (database[key].email === email) {
@@ -11,7 +12,7 @@ const getUserByEmail = function(email, database) {
 };
 
 //Checks if the input is a valid URL
-const isValidHttpUrl = function(string) {
+const isValidUrl = function(string) {
   let url;
   try {
     url = new URL(string);
@@ -47,6 +48,6 @@ const urlsForUser = function(userId, urlDb) {
 module.exports = {
   generateRandomString,
   getUserByEmail,
-  isValidHttpUrl,
+  isValidUrl,
   urlsForUser
 };

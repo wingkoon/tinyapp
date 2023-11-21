@@ -13,6 +13,13 @@ TinyApp is a full stack web application built with Node and Express that allows 
 !["This is the URL edit page."](edit.jpg)
 !["After the edit, the URL changed. If we select the delete function, the selected URL will be deleted."](urls_after_edit.jpg)
 
+## Technologies Used
+- HTML5
+- EJS
+- JavaScript 
+- bcrypt (for encryption)
+- Node.js and Express (for backend server functionality)
+
 ## Dependencies
 
 - Node.js

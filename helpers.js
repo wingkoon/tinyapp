@@ -32,12 +32,12 @@ const generateRandomString = function() {
 };
 
 //Adding URLS for the user
-const urlsForUser = function(userId, urlDb) {
-  const result = urlDatabase;
-  for (let key in urlDb) {
-    if (urlDb[key].userID === userId) {
+const urlsForUser = function(userId, urlDatabase) {
+  let result = {};
+  for (let key in urlDatabase) {
+    if (urlDatabase[key].userID === userId) {
       result[key] = {
-        longURL: urlDb[key].longURL,
+        longURL: urlDatabase[key].longURL,
         userID: userId
       };
     }

@@ -39,7 +39,7 @@ app.get('/urls', (req, res) => {
   };
 
   if (!user) {
-    return res.status(401).send('<h3>Make sure you are logged in!<h3> Login <a href="/login">here</a>');
+    return res.status(401).send('<h3>Make sure you are logged in!</h3> Login <a href="/login">here</a>');
   }
 
   res.render("urls_index", templateVars);
@@ -80,13 +80,18 @@ app.get('/register', (req, res) => {
 });
 
 //Register post endpoint
+//Encrypt the password
 app.post('/register', (req, res) => {
   const email = req.body.email;
-  const password = req.body.password;
-  postUser(email, password, users, "/register", req, res);
+  let encryptPassword = bcrypt.hashSync(req.body.password, 10);
+  if (!req.body.password) {
+    encryptPassword = "";
+  }
+  postUser(email, encryptPassword, users, "/register", req, res);
 });
 
 //Refactor login and register function
+//Note: Password has already encrypted.
 const postUser = function(email, password, users, action, req, res) {
   let userID;
   if (!email || !password) {
@@ -106,13 +111,11 @@ const postUser = function(email, password, users, action, req, res) {
     if (user) {
       return res.status(400).send('<p>That email is alredy in use. Please provide a different email.</p><a href=/register>here</a>');
     }
-    const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync(password, salt);
     userID = generateRandomString();
     users[userID] = {
         id: userID,
         email: email,
-        password: hash
+        password: password
     };
   }
   req.session.user_id = userID;
@@ -123,11 +126,11 @@ const postUser = function(email, password, users, action, req, res) {
 app.get('/urls/new', (req, res) => {
   const userID = req.session.user_id;
   if (!userID) {
-    return res.status(401).send('<h3>Make sure you are logged in!<h3> Login <a href="/login">here</a>');
+    return res.status(401).send('<h3>Make sure you are logged in!</h3> Login <a href="/login">here</a>');
   }
   const user = users[userID];
   const templateVars = {
-        urls: urlDatabase,
+        urls: userURLs,
         user: user
   };
   res.render('urls_new', templateVars);
@@ -136,9 +139,21 @@ app.get('/urls/new', (req, res) => {
 
 //Edit URL
 app.get("/urls/:id", (req, res) => {
-  const loggedInUser = req.session.user_id;
-  const user = users[loggedInUser]; //accessing users database
+  const userID = req.session.user_id;
+  const user = users[userID]; //accessing users database
   let longURL = urlDatabase[req.params.id];
+  if (!user) {
+    return res.status(401).send('<h3>Make sure you are logged in!</h3> Login <a href="/login">here</a>');
+  }
+
+  if (longURL === undefined) {
+    return res.send(`<h3>Short URL ${req.params.id} does not exist</h3> Press <a href="/urls">here</a> to Homepage.`);
+  }
+
+  if (userID !== urlDatabase[req.params.id].userID) {
+    return res.send(`<h3>This URL does not belong to you.</h3> Press <a href="/urls">here</a> to Homepage.`);
+  }
+
   const templateVars = { id: req.params.id, longURL: longURL, user: user };
   res.render(`urls_show.ejs`, templateVars);
 });
@@ -153,8 +168,9 @@ app.post("/urls", (req, res) => {
   if (!checkUrl(longURL, link, res)) {
     let id = generateRandomString();
     urlDatabase[id] = longURL;
+    urlDatabase[userID] = userID;
     req.session.user_id = userID;
-    res.send('<h3>longURL registered! Go to homepage.<h3><a href="/urls">Click here</a>');
+    res.redirect('urls');
   }
 });
 

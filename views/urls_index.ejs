@@ -24,6 +24,7 @@
                         <th scope="col">Delete</th>
                     </tr>
                 </thead>
+                
                 <tbody>
                     <% for (let id in urls) { %>
                         <tr>
@@ -31,14 +32,14 @@
                                 <%= id %>
                             </td>
                             <td>
-                                <%= urls[id] %>
+                                <%= urls[id].longURL %>
                             </td>
                             <td>
                                 <form method="GET" action="urls/<%= id %>">
                                     <input type="submit" value="Edit" class="btn btn-outline-primary" name="url" />
                                 </form>
                             <td>
-                                <form method="POST" action="urls/<%= id %>/delete">
+                                <form method="POST" action="urls/<%= id %>/delete?_method=DELETE">
                                     <input type="submit" value="Delete" class="btn btn-outline-danger" />
                                 </form>
                             </td>

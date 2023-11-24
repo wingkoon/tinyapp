@@ -5,10 +5,12 @@ const bcrypt = require('bcryptjs');
 const cookieSession = require('cookie-session');
 const { getUserByEmail, generateRandomString, isValidUrl, urlsForUser } = require('./helpers');
 const { urlDatabase, users } = require('./database');
+let methodOverride = require('./node_modules/method-override');
 const PORT = 8080;
 
 app.use(express.urlencoded({ extended: true })); //populates req.body
 app.use(morgan('dev')); //console logs the request coming on the terminal
+app.use(methodOverride('_method'));
 app.set('view engine', 'ejs'); //set the view engine to ejs templates
 app.use(cookieSession({
   name: 'user_id',
@@ -41,6 +43,8 @@ app.get('/urls', (req, res) => {
   if (!user) {
     return res.status(401).send('<h3>Make sure you are logged in!</h3> Login <a href="/login">here</a>');
   }
+
+  console.log(2, userURLs);
 
   res.render("urls_index", templateVars);
 });
@@ -125,10 +129,11 @@ const postUser = function(email, password, users, action, req, res) {
 //Create new URL
 app.get('/urls/new', (req, res) => {
   const userID = req.session.user_id;
-  if (!userID) {
+  const user = users[userID];
+  if (!user) {
     return res.status(401).send('<h3>Make sure you are logged in!</h3> Login <a href="/login">here</a>');
   }
-  const user = users[userID];
+  const userURLs = urlsForUser(userID, urlDatabase); 
   const templateVars = {
         urls: userURLs,
         user: user
@@ -158,7 +163,7 @@ app.get("/urls/:id", (req, res) => {
   res.render(`urls_show.ejs`, templateVars);
 });
 
-app.post("/urls", (req, res) => {
+app.put("/urls", (req, res) => {
   const userID = req.session.user_id;
   if (!userID) {
     return res.status(400).send('<p>Please login to continue.</p><a href="/login">Login</a>');
@@ -167,8 +172,13 @@ app.post("/urls", (req, res) => {
   const link = "/urls/new";
   if (!checkUrl(longURL, link, res)) {
     let id = generateRandomString();
-    urlDatabase[id] = longURL;
-    urlDatabase[userID] = userID;
+    date = new Date();
+    urlDatabase[id] = {
+      longURL: longURL,
+      userID: userID,
+      date: date
+    } 
+    console.log(3, urlDatabase);
     req.session.user_id = userID;
     res.redirect('urls');
   }
@@ -176,8 +186,8 @@ app.post("/urls", (req, res) => {
 
   
 app.get("/urls/:id/edit", (req, res) => {
-  const loggedInUser = req.session.user_id;
-  const user = users[loggedInUser].id; //accessing users database
+  const userID = req.session.user_id;
+  const user = users[userID].id; //accessing users database
   const templateVars = {
         urls: urlDatabase,
         user: user
@@ -190,7 +200,7 @@ app.post("/urls/:id/edit", (req, res) => {
   let id = req.params.id;
   const link = "/urls/" + id;
   if (!checkUrl(longURL, link, res)) {
-    urlDatabase[id] = longURL;
+    urlDatabase[id].longURL = longURL;
     res.send('<h3>longURL edited! Go to homepage.<h3><a href="/urls">Click here</a>');
   }
 });
@@ -198,6 +208,7 @@ app.post("/urls/:id/edit", (req, res) => {
 //Check the Url validity
 //Share by create and edit usages
 const checkUrl = function(longURL, link, res) {
+  console.log(4, longURL);
   if (longURL === "") {
     return res.send(`<h3>Null input! Please type in valid URL!<h3> Login <a href="${link}">Go back</a>`);
   } else if (!isValidUrl(longURL)) {
@@ -209,8 +220,7 @@ const checkUrl = function(longURL, link, res) {
 //Redirect to the corresponding URL pages
 app.get("/u/:id", (req, res) => {
   if (urlDatabase[req.params.id]) {
-    let longURL = urlDatabase[req.params.id];
-    console.log(longURL);
+    let longURL = urlDatabase[req.params.id].longURL;
     res.redirect(longURL);
   } else {
     res
@@ -221,7 +231,7 @@ app.get("/u/:id", (req, res) => {
 
 
 //Delete URL
-app.post("/urls/:id/delete", (req, res) => {
+app.delete("/urls/:id/delete", (req, res) => {
   delete urlDatabase[req.params.id];
   res.redirect('/urls');
 });

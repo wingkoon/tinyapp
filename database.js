@@ -1,11 +1,13 @@
 const urlDatabase = {
     b2xVn2: {
       longURL: "http://www.lighthouselabs.ca",
-      userID: "abcde5"
+      userID: "abcde5",
+      date: ""
     },
     s9m5xK: {
       longURL: "http://www.google.com",
-      userID: "fghij6"
+      userID: "fghij6",
+      date: ""
     }
   };
 

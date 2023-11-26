@@ -21,7 +21,6 @@ app.listen(PORT, () => {
   console.log(`Tinyapp listening on port: ${PORT}!`);
 });
 
-
 //Homepage
 app.get("/", (req, res) => {
   if (users[req.session.user_id]) {
@@ -44,8 +43,6 @@ app.get('/urls', (req, res) => {
     return res.status(401).send('<h3>Make sure you are logged in!</h3> Login <a href="/login">here</a>');
   }
 
-  console.log(2, userURLs);
-
   res.render("urls_index", templateVars);
 });
 
@@ -65,8 +62,7 @@ app.get('/login', (req, res) => {
 
 app.post('/login', (req, res) => {
   const email = req.body.email;
-  const password = req.body.password;
-  postUser(email, password, users, "/login", req, res);
+  postUser(email, req.body.password, users, "/login", req, res);
 });
 
 
@@ -84,29 +80,26 @@ app.get('/register', (req, res) => {
 });
 
 //Register post endpoint
-//Encrypt the password
 app.post('/register', (req, res) => {
   const email = req.body.email;
-  let encryptPassword = bcrypt.hashSync(req.body.password, 10);
-  if (!req.body.password) {
-    encryptPassword = "";
-  }
-  postUser(email, encryptPassword, users, "/register", req, res);
+  postUser(email, req.body.password, users, "/register", req, res);
 });
 
 //Refactor login and register function
-//Note: Password has already encrypted.
 const postUser = function(email, password, users, action, req, res) {
   let userID;
   if (!email || !password) {
     return res.status(400).send(`<p>Please provide email and password</p><a href="${action}">here</a>`);
   }
+
+  //Encrypt the password
+  const hash = bcrypt.hashSync(password, 10);
   const user = getUserByEmail(email, users);
   if (action === "/login") {
     if (!user) {
       return res.status(403).send('<p>No user with that email found</p><a href=/login>here</a>');
     }
-    const result = bcrypt.compareSync(password, user.password);
+    const result = bcrypt.compareSync(user.password, hash); 
     if (!result) {
       return res.status(403).send('<p>Invalid Password</p><a href=/login>here</a>');
     }
@@ -178,7 +171,6 @@ app.put("/urls", (req, res) => {
       userID: userID,
       date: date
     } 
-    console.log(3, urlDatabase);
     req.session.user_id = userID;
     res.redirect('urls');
   }
@@ -187,6 +179,9 @@ app.put("/urls", (req, res) => {
   
 app.get("/urls/:id/edit", (req, res) => {
   const userID = req.session.user_id;
+  if (!userID) {
+    return res.status(400).send('<p>Please login to continue.</p><a href="/login">Login</a>');
+  }
   const user = users[userID].id; //accessing users database
   const templateVars = {
         urls: urlDatabase,
@@ -208,7 +203,6 @@ app.post("/urls/:id/edit", (req, res) => {
 //Check the Url validity
 //Share by create and edit usages
 const checkUrl = function(longURL, link, res) {
-  console.log(4, longURL);
   if (longURL === "") {
     return res.send(`<h3>Null input! Please type in valid URL!<h3> Login <a href="${link}">Go back</a>`);
   } else if (!isValidUrl(longURL)) {
@@ -219,6 +213,10 @@ const checkUrl = function(longURL, link, res) {
 
 //Redirect to the corresponding URL pages
 app.get("/u/:id", (req, res) => {
+  const userID = req.session.user_id;
+  if (!userID) {
+    return res.status(400).send('<p>Please login to continue.</p><a href="/login">Login</a>');
+  }
   if (urlDatabase[req.params.id]) {
     let longURL = urlDatabase[req.params.id].longURL;
     res.redirect(longURL);
@@ -242,4 +240,6 @@ app.post('/logout', (req, res) => {
   req.session = null;
   res.redirect('/login');
 });
+
+
 

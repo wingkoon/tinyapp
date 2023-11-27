@@ -10,9 +10,9 @@ It also incorporates method-override(enables put and delete) and analytics for t
 !["If the user has not register, he can go to this register page."](./docs/register.jpg)
 !["After register or success login, it will turn to this url main page."](./docs/urls.jpg)
 !["We can create URL by going to create new URL page."](./docs/create.jpg)
-!["After URL created, new URL appear, with the assigned shorten URL. There are a few analytics: the date created, visit column shows the total visit number, user column shows the unique visitor number. We can go to the URL by clicking either the short or long form of URL."](.docs/url_with_an_URL_input.jpg)
-!["If we visit the URL, and then come back to the url page of this app, the analytics will show changes."](.docs/visit_url_then_come_back.jpg)
-!["If we click Edit, it will go to this Edit page. Full analytics are also shown on the pages. There are date and time of creation, total visitors, unique visitors, and the visit history that include the visit ID and the timestamp."](.docs/Edit.jpg)
+!["After URL created, new URL appear, with the assigned shorten URL. There are a few analytics: the date created, visit column shows the total visit number, user column shows the unique visitor number. We can go to the URL by clicking either the short or long form of URL."](./docs/url_with_an_URL_input.jpg)
+!["If we visit the URL, and then come back to the url page of this app, the analytics will show changes."](./docs/visit_url_then_come_back.jpg)
+!["If we click Edit, it will go to this Edit page. Full analytics are also shown on the pages. There are date and time of creation, total visitors, unique visitors, and the visit history that include the visit ID and the timestamp."](./docs/Edit.jpg)
 
 ## Technologies Used
 - HTML5

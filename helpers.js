@@ -38,12 +38,16 @@ const urlsForUser = function(userId, urlDatabase) {
     if (urlDatabase[key].userID === userId) {
       result[key] = {
         longURL: urlDatabase[key].longURL,
-        userID: userId
+        userID: userId,
+        creationDate: urlDatabase[key].creationDate,
+        visit: urlDatabase[key].visit,
+        visitHistory: urlDatabase[key].visitHistory
       };
     }
   }
   return result;
 };
+
 
 module.exports = {
   generateRandomString,

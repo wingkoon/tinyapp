@@ -36,7 +36,7 @@ It also incorporates method-override(enables put and delete) and analytics for t
 
 1. Download the software.
 
-git clone git@github.com:wingkoon/tinyapp.git
+    git clone git@github.com:wingkoon/tinyapp.git
 
 2. Prepare for the dependency.
 

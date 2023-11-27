@@ -12,9 +12,9 @@
           </div>
       </div>
       <% if(user) { %>
-          <span style="padding-right: 10px">Logged in as: <%= user.email %> &emsp;  User ID: <%= userID %></span>
+          <span class="text-light" style="padding-right: 10px">Logged in as: <%= user.email %> &emsp;  User ID: <%= userID %></span>
           <form method="POST" action="/logout">
-              <button type="Submit" class="btn btn-outline-primary">Logout</button>
+              <button type="Submit" class="btn btn-info">Logout</button>
           </form>
           <% } else {%>
             <div class="navbar-nav">

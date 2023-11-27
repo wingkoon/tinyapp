@@ -37,7 +37,8 @@ app.get('/urls', (req, res) => {
   const templateVars = {
       urls: userURLs,
       user: user,
-      userID: userID
+      userID: userID,
+      analytic: analytic
   };
 
   if (!user) {
@@ -97,7 +98,7 @@ const postUser = function(email, password, users, action, req, res) {
     if (!user) {
       return res.status(403).send('<p>No user with that email found</p><a href=/login>here</a>');
     }
-    const result = bcrypt.compareSync(user.password, hash); 
+    const result = bcrypt.compareSync(user.password, hash);
     if (!result) {
       return res.status(403).send('<p>Invalid Password</p><a href=/login>here</a>');
     }
@@ -124,7 +125,7 @@ app.get('/urls/new', (req, res) => {
   if (!user) {
     return res.status(401).send('<h3>Make sure you are logged in!</h3> Login <a href="/login">here</a>');
   }
-  const userURLs = urlsForUser(userID, urlDatabase); 
+  const userURLs = urlsForUser(userID, urlDatabase);
   const templateVars = {
         urls: userURLs,
         user: user,
@@ -138,31 +139,26 @@ app.get('/urls/new', (req, res) => {
 app.get("/urls/:id", (req, res) => {
   const userID = req.session.user_id;
   const user = users[userID]; //accessing users database
-  let id = req.params.id;
-  let longURL = urlDatabase[id].longURL;
   if (!user) {
     return res.status(401).send('<h3>Make sure you are logged in!</h3> Login <a href="/login">here</a>');
   }
-
-  if (longURL === undefined) {
+  let id = req.params.id;
+  if (!urlDatabase[id]) {
     return res.send(`<h3>Short URL ${req.params.id} does not exist</h3> Press <a href="/urls">here</a> to Homepage.`);
   }
-
+  let longURL = urlDatabase[id].longURL;
   if (userID !== urlDatabase[id].userID) {
     return res.send(`<h3>This URL does not belong to you.</h3> Press <a href="/urls">here</a> to Homepage.`);
   }
 
-  console.log(1, analytic[longURL]);
-  console.log(1, analytic);
-  console.log(1, longURL);
   const uniqueVisit = analytic[longURL].uniqueVisitor.length;
   const visit = analytic[longURL].visit;
   const visitHistory = analytic[longURL].visitHistory;
 
-  const templateVars = { 
-    id: id, 
-    longURL: urlDatabase[id].longURL, 
-    user: user, 
+  const templateVars = {
+    id: id,
+    longURL: urlDatabase[id].longURL,
+    user: user,
     url: urlDatabase[id],
     userID: userID,
     visit: visit,
@@ -181,18 +177,18 @@ app.put("/urls", (req, res) => {
   const link = "/urls/new";
   if (!checkUrl(longURL, link, res)) {
     let id = generateRandomString();
-    creationDate = new Date();
+    const creationDate = new Date();
     urlDatabase[id] = {
       longURL: longURL,
       userID: userID,
       creationDate: creationDate
-    } 
+    };
     if (!analytic[longURL]) {
       analytic[longURL] = {
         visit: 0,
         visitHistory: [],
         uniqueVisitor: []
-      }
+      };
     }
     req.session.user_id = userID;
     res.redirect('urls');
@@ -204,12 +200,6 @@ app.get("/urls/:id/edit", (req, res) => {
   if (!userID) {
     return res.status(400).send('<p>Please login to continue.</p><a href="/login">Login</a>');
   }
-  const user = users[userID].id; //accessing users database
-  const templateVars = {
-        urls: urlDatabase,
-        user: user,
-        userID: userID
-  };
   res.redirect('/urls');
 });
 
@@ -224,7 +214,7 @@ app.post("/urls/:id/edit", (req, res) => {
         visit: 0,
         visitHistory: [],
         uniqueVisitor: []
-      }
+      };
     }
     res.send('<h3>longURL edited! Go to homepage.<h3><a href="/urls">Click here</a>');
   }
@@ -250,7 +240,6 @@ app.get("/u/:id", (req, res) => {
   if (urlDatabase[req.params.id]) {
     let longURL = urlDatabase[req.params.id].longURL;
     let date = new Date();
-    const id = req.params.id;
     if (!analytic[longURL]) {
       analytic[longURL].visit = 1;
       analytic[longURL].visitHistory = [[date, userID]];

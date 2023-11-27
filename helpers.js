@@ -1,7 +1,4 @@
 //finds the user by email
-const { urlDatabase, users } = require('./database');
-
-
 const getUserByEmail = function(email, database) {
   for (let key in database) {
     if (database[key].email === email) {
@@ -23,12 +20,8 @@ const isValidUrl = function(string) {
 };
 
 const generateRandomString = function() {
-  const string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let uniqueID = '';
-  for (let i = 0; i < 6; i++) {
-    uniqueID += string.charAt(Math.floor(Math.random() * string.length));
-  }
-  return uniqueID;
+  const result = Math.random().toString(36).substring(2,8);
+  return result;
 };
 
 //Adding URLS for the user

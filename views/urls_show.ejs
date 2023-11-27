@@ -18,9 +18,6 @@
                 <h5 class="card-title">TinyURL for: <%= longURL %></h5>
                 <p class="card-text">
                     Short URL ID: <a href="/u/<%= id %>"><%= id %></a></p>
-                <p class="card-text">Date of creation: <%= url.creationDate.toLocaleDateString() %>, <%= url.creationDate.toLocaleTimeString() %></a></p>
-                <p class="card-text">Number of visits: <%= visit %></a></p>
-                <p class="card-text">Number of unique visitors: <%= uniqueVisit %></a></p>
             </div>
             <div class="card-footer text-muted">
                 <h2>Edit</h2>
@@ -31,12 +28,31 @@
                     <button type="submit" class="btn btn-outline-success">Edit</button>
                 </form>
             </div>
-            <h3 style="text-align:left; margin-top:1em; margin-left:2em;">Visits History</h3>
+            <div class="card text-center">
+            <h2> Analytics</h2></div>
+            <p class="card-text">Date of creation: <%= url.creationDate.toLocaleDateString() %>, <%= url.creationDate.toLocaleTimeString() %></p>
+            <div>
+                <tr>
+                    <td>
+                        <button type="button" class="btn btn-info">
+                    TOTAL Visitors <span class="badge badge-light"><%= visit %></span>
+                    <span class="sr-only">Total TinyURL clicks</span>
+                        </button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-success">
+                    Unique Visitors <span class="badge badge-light"><%= uniqueVisit %></span>
+                    <span class="sr-only">Unique visitor clicks</span>
+                        </button>
+                    </td>
+                </tr>
+            </div>
+            <h3 class="card text-center">Visits History</h3>
             <table class="table">
               <thead>
                 <tr>
                   <th scope="col">Visitor ID</th>
-                  <th scope="col">Date of visit</th>
+                  <th scope="col">Timestamp</th>
                 </tr>
               </thead>
               <tbody>

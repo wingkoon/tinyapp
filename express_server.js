@@ -168,6 +168,8 @@ app.get("/urls/:id", (req, res) => {
   res.render(`urls_show.ejs`, templateVars);
 });
 
+//This create new URL
+//Here uses method-override put
 app.put("/urls", (req, res) => {
   const userID = req.session.user_id;
   if (!userID) {
@@ -183,6 +185,7 @@ app.put("/urls", (req, res) => {
       userID: userID,
       creationDate: creationDate
     };
+    //initialize analytic object
     if (!analytic[longURL]) {
       analytic[longURL] = {
         visit: 0,
@@ -240,6 +243,7 @@ app.get("/u/:id", (req, res) => {
   if (urlDatabase[req.params.id]) {
     let longURL = urlDatabase[req.params.id].longURL;
     let date = new Date();
+    //update the analytics before redirect to the URL pages
     if (!analytic[longURL]) {
       analytic[longURL].visit = 1;
       analytic[longURL].visitHistory = [[date, userID]];
@@ -261,6 +265,7 @@ app.get("/u/:id", (req, res) => {
 
 
 //Delete URL
+//Here uses the method-override delete
 app.delete("/urls/:id/delete", (req, res) => {
   delete urlDatabase[req.params.id];
   res.redirect('/urls');

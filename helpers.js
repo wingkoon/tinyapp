@@ -19,6 +19,7 @@ const isValidUrl = function(string) {
   return url.protocol === "http:" || url.protocol === "https:";
 };
 
+//Generate random string, this is used for shortURL and userID generations
 const generateRandomString = function() {
   const result = Math.random().toString(36).substring(2,8);
   return result;

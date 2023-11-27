@@ -4,11 +4,13 @@ const morgan = require('morgan');
 const bcrypt = require('bcryptjs');
 const cookieSession = require('cookie-session');
 const { getUserByEmail, generateRandomString, isValidUrl, urlsForUser } = require('./helpers');
-const { urlDatabase, users } = require('./database');
+const { urlDatabase, users, analytic } = require('./database');
+let methodOverride = require('./node_modules/method-override');
 const PORT = 8080;
 
 app.use(express.urlencoded({ extended: true })); //populates req.body
 app.use(morgan('dev')); //console logs the request coming on the terminal
+app.use(methodOverride('_method'));
 app.set('view engine', 'ejs'); //set the view engine to ejs templates
 app.use(cookieSession({
   name: 'user_id',
@@ -18,7 +20,6 @@ app.use(cookieSession({
 app.listen(PORT, () => {
   console.log(`Tinyapp listening on port: ${PORT}!`);
 });
-
 
 //Homepage
 app.get("/", (req, res) => {
@@ -35,11 +36,13 @@ app.get('/urls', (req, res) => {
   const userURLs = urlsForUser(userID, urlDatabase);
   const templateVars = {
       urls: userURLs,
-      user: user
+      user: user,
+      userID: userID,
+      analytic: analytic
   };
 
   if (!user) {
-    return res.status(401).send('<h3>Make sure you are logged in!<h3> Login <a href="/login">here</a>');
+    return res.status(401).send('<h3>Make sure you are logged in!</h3> Login <a href="/login">here</a>');
   }
 
   res.render("urls_index", templateVars);
@@ -61,8 +64,7 @@ app.get('/login', (req, res) => {
 
 app.post('/login', (req, res) => {
   const email = req.body.email;
-  const password = req.body.password;
-  postUser(email, password, users, "/login", req, res);
+  postUser(email, req.body.password, users, "/login", req, res);
 });
 
 
@@ -82,22 +84,21 @@ app.get('/register', (req, res) => {
 //Register post endpoint
 app.post('/register', (req, res) => {
   const email = req.body.email;
-  const password = req.body.password;
-  postUser(email, password, users, "/register", req, res);
+  postUser(email, req.body.password, users, "/register", req, res);
 });
 
 //Refactor login and register function
 const postUser = function(email, password, users, action, req, res) {
   let userID;
-  if (!email || !password) {
-    return res.status(400).send(`<p>Please provide email and password</p><a href="${action}">here</a>`);
-  }
+
+  //Encrypt the password
+  const hash = bcrypt.hashSync(password, 10);
   const user = getUserByEmail(email, users);
   if (action === "/login") {
     if (!user) {
       return res.status(403).send('<p>No user with that email found</p><a href=/login>here</a>');
     }
-    const result = bcrypt.compareSync(password, user.password);
+    const result = bcrypt.compareSync(user.password, hash);
     if (!result) {
       return res.status(403).send('<p>Invalid Password</p><a href=/login>here</a>');
     }
@@ -106,13 +107,11 @@ const postUser = function(email, password, users, action, req, res) {
     if (user) {
       return res.status(400).send('<p>That email is alredy in use. Please provide a different email.</p><a href=/register>here</a>');
     }
-    const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync(password, salt);
     userID = generateRandomString();
     users[userID] = {
         id: userID,
         email: email,
-        password: hash
+        password: password
     };
   }
   req.session.user_id = userID;
@@ -122,13 +121,15 @@ const postUser = function(email, password, users, action, req, res) {
 //Create new URL
 app.get('/urls/new', (req, res) => {
   const userID = req.session.user_id;
-  if (!userID) {
-    return res.status(401).send('<h3>Make sure you are logged in!<h3> Login <a href="/login">here</a>');
-  }
   const user = users[userID];
+  if (!user) {
+    return res.status(401).send('<h3>Make sure you are logged in!</h3> Login <a href="/login">here</a>');
+  }
+  const userURLs = urlsForUser(userID, urlDatabase);
   const templateVars = {
-        urls: urlDatabase,
-        user: user
+        urls: userURLs,
+        user: user,
+        userID: userID
   };
   res.render('urls_new', templateVars);
 });
@@ -136,14 +137,40 @@ app.get('/urls/new', (req, res) => {
 
 //Edit URL
 app.get("/urls/:id", (req, res) => {
-  const loggedInUser = req.session.user_id;
-  const user = users[loggedInUser]; //accessing users database
-  let longURL = urlDatabase[req.params.id];
-  const templateVars = { id: req.params.id, longURL: longURL, user: user };
+  const userID = req.session.user_id;
+  const user = users[userID]; //accessing users database
+  if (!user) {
+    return res.status(401).send('<h3>Make sure you are logged in!</h3> Login <a href="/login">here</a>');
+  }
+  let id = req.params.id;
+  if (!urlDatabase[id]) {
+    return res.send(`<h3>Short URL ${req.params.id} does not exist</h3> Press <a href="/urls">here</a> to Homepage.`);
+  }
+  let longURL = urlDatabase[id].longURL;
+  if (userID !== urlDatabase[id].userID) {
+    return res.send(`<h3>This URL does not belong to you.</h3> Press <a href="/urls">here</a> to Homepage.`);
+  }
+
+  const uniqueVisit = analytic[longURL].uniqueVisitor.length;
+  const visit = analytic[longURL].visit;
+  const visitHistory = analytic[longURL].visitHistory;
+
+  const templateVars = {
+    id: id,
+    longURL: urlDatabase[id].longURL,
+    user: user,
+    url: urlDatabase[id],
+    userID: userID,
+    visit: visit,
+    uniqueVisit: uniqueVisit,
+    visitHistory: visitHistory
+  };
   res.render(`urls_show.ejs`, templateVars);
 });
 
-app.post("/urls", (req, res) => {
+//This create new URL
+//Here uses method-override put
+app.put("/urls", (req, res) => {
   const userID = req.session.user_id;
   if (!userID) {
     return res.status(400).send('<p>Please login to continue.</p><a href="/login">Login</a>');
@@ -152,20 +179,30 @@ app.post("/urls", (req, res) => {
   const link = "/urls/new";
   if (!checkUrl(longURL, link, res)) {
     let id = generateRandomString();
-    urlDatabase[id] = longURL;
+    const creationDate = new Date();
+    urlDatabase[id] = {
+      longURL: longURL,
+      userID: userID,
+      creationDate: creationDate
+    };
+    //initialize analytic object
+    if (!analytic[longURL]) {
+      analytic[longURL] = {
+        visit: 0,
+        visitHistory: [],
+        uniqueVisitor: []
+      };
+    }
     req.session.user_id = userID;
-    res.send('<h3>longURL registered! Go to homepage.<h3><a href="/urls">Click here</a>');
+    res.redirect('urls');
   }
 });
 
-  
 app.get("/urls/:id/edit", (req, res) => {
-  const loggedInUser = req.session.user_id;
-  const user = users[loggedInUser].id; //accessing users database
-  const templateVars = {
-        urls: urlDatabase,
-        user: user
-  };
+  const userID = req.session.user_id;
+  if (!userID) {
+    return res.status(400).send('<p>Please login to continue.</p><a href="/login">Login</a>');
+  }
   res.redirect('/urls');
 });
 
@@ -174,7 +211,14 @@ app.post("/urls/:id/edit", (req, res) => {
   let id = req.params.id;
   const link = "/urls/" + id;
   if (!checkUrl(longURL, link, res)) {
-    urlDatabase[id] = longURL;
+    urlDatabase[id].longURL = longURL;
+    if (!analytic[longURL]) {
+      analytic[longURL] = {
+        visit: 0,
+        visitHistory: [],
+        uniqueVisitor: []
+      };
+    }
     res.send('<h3>longURL edited! Go to homepage.<h3><a href="/urls">Click here</a>');
   }
 });
@@ -192,9 +236,25 @@ const checkUrl = function(longURL, link, res) {
 
 //Redirect to the corresponding URL pages
 app.get("/u/:id", (req, res) => {
+  const userID = req.session.user_id;
+  if (!userID) {
+    return res.status(400).send('<p>Please login to continue.</p><a href="/login">Login</a>');
+  }
   if (urlDatabase[req.params.id]) {
-    let longURL = urlDatabase[req.params.id];
-    console.log(longURL);
+    let longURL = urlDatabase[req.params.id].longURL;
+    let date = new Date();
+    //update the analytics before redirect to the URL pages
+    if (!analytic[longURL]) {
+      analytic[longURL].visit = 1;
+      analytic[longURL].visitHistory = [[date, userID]];
+      analytic[longURL].uniqueVisitor = [userID];
+    } else {
+      analytic[longURL].visit ++;
+      analytic[longURL].visitHistory.push([date, userID]);
+      if (!analytic[longURL].uniqueVisitor.includes(userID)) {
+        analytic[longURL].uniqueVisitor.push(userID);
+      }
+    }
     res.redirect(longURL);
   } else {
     res
@@ -205,7 +265,8 @@ app.get("/u/:id", (req, res) => {
 
 
 //Delete URL
-app.post("/urls/:id/delete", (req, res) => {
+//Here uses the method-override delete
+app.delete("/urls/:id/delete", (req, res) => {
   delete urlDatabase[req.params.id];
   res.redirect('/urls');
 });
@@ -216,4 +277,6 @@ app.post('/logout', (req, res) => {
   req.session = null;
   res.redirect('/login');
 });
+
+
 

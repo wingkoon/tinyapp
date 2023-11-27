@@ -9,23 +9,64 @@
 </head>
 
 <body>
+   <header> 
     <%- include('partials/_header') %>
+    </header>
         <div class="card text-center">
             <div class="card-header"></div>
             <div class="card-body">
-                <h5 class="card-title">TinyURL for: <%= longURL %>
-                </h5>
+                <h5 class="card-title">TinyURL for: <%= longURL %></h5>
                 <p class="card-text">
-                    Short URL ID: <a href="/u/<%= id %>"><%= id %></a>
-                </p>
+                    Short URL ID: <a href="/u/<%= id %>"><%= id %></a></p>
             </div>
             <div class="card-footer text-muted">
-                <form method="POST" action="/urls/<%= id %>/edit">
-                    <input type="text" name="longURL" required />
+                <h2>Edit</h2>
+                <form class="form-inline justify-content-center" method="POST" action="/urls/<%= id %>/edit">
+                    <label for="longURL">New URL:</label>
+                    <input type="text" name="longURL" placeholder="http://" />
+                    <br><br>
                     <button type="submit" class="btn btn-outline-success">Edit</button>
                 </form>
             </div>
+            <div class="card text-center">
+            <h2> Analytics</h2></div>
+            <p class="card-text">Date of creation: <%= url.creationDate.toLocaleDateString() %>, <%= url.creationDate.toLocaleTimeString() %></p>
+            <div>
+                <tr>
+                    <td>
+                        <button type="button" class="btn btn-info">
+                    TOTAL Visitors <span class="badge badge-light"><%= visit %></span>
+                    <span class="sr-only">Total TinyURL clicks</span>
+                        </button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-success">
+                    Unique Visitors <span class="badge badge-light"><%= uniqueVisit %></span>
+                    <span class="sr-only">Unique visitor clicks</span>
+                        </button>
+                    </td>
+                </tr>
+            </div>
+            <h3 class="card text-center">Visits History</h3>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">Visitor ID</th>
+                  <th scope="col">Timestamp</th>
+                </tr>
+              </thead>
+              <tbody>
+                  <tr>
+                <% for (let visit in visitHistory) { %>   
+                    <tr>  
+                    <td><%= visitHistory[visit][1] %></td>
+                    <td><%= visitHistory[visit][0].toLocaleDateString() %>, <%= visitHistory[visit][0].toLocaleTimeString() %></td>
+                    </tr>
+              <% } %>   
+              </tbody>
+            </table>
         </div>
+
         <!-- Bootstrap JS -->
         <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
             integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"

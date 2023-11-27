@@ -1,7 +1,4 @@
 //finds the user by email
-const { urlDatabase, users } = require('./database');
-
-
 const getUserByEmail = function(email, database) {
   for (let key in database) {
     if (database[key].email === email) {
@@ -22,28 +19,29 @@ const isValidUrl = function(string) {
   return url.protocol === "http:" || url.protocol === "https:";
 };
 
+//Generate random string, this is used for shortURL and userID generations
 const generateRandomString = function() {
-  const string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let uniqueID = '';
-  for (let i = 0; i < 6; i++) {
-    uniqueID += string.charAt(Math.floor(Math.random() * string.length));
-  }
-  return uniqueID;
+  const result = Math.random().toString(36).substring(2,8);
+  return result;
 };
 
 //Adding URLS for the user
-const urlsForUser = function(userId, urlDb) {
-  const result = urlDatabase;
-  for (let key in urlDb) {
-    if (urlDb[key].userID === userId) {
+const urlsForUser = function(userId, urlDatabase) {
+  let result = {};
+  for (let key in urlDatabase) {
+    if (urlDatabase[key].userID === userId) {
       result[key] = {
-        longURL: urlDb[key].longURL,
-        userID: userId
+        longURL: urlDatabase[key].longURL,
+        userID: userId,
+        creationDate: urlDatabase[key].creationDate,
+        visit: urlDatabase[key].visit,
+        visitHistory: urlDatabase[key].visitHistory
       };
     }
   }
   return result;
 };
+
 
 module.exports = {
   generateRandomString,

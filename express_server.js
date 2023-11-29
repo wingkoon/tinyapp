@@ -275,6 +275,7 @@ app.delete("/urls/:id/delete", (req, res) => {
 //Clearing cookies
 app.post('/logout', (req, res) => {
   req.session = null;
+  res.clearcookies('user_id');
   res.redirect('/login');
 });
 

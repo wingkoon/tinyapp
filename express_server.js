@@ -91,14 +91,15 @@ app.post('/register', (req, res) => {
 const postUser = function(email, password, users, action, req, res) {
   let userID;
 
-  //Encrypt the password
-  const hash = bcrypt.hashSync(password, 10);
+  //Hash the password
+  const salt = bcrypt.genSaltSync(9);
+  const hash = bcrypt.hashSync(password, salt);
   const user = getUserByEmail(email, users);
   if (action === "/login") {
     if (!user) {
       return res.status(403).send('<p>No user with that email found</p><a href=/login>here</a>');
     }
-    const result = bcrypt.compareSync(user.password, hash);
+    const result = bcrypt.compareSync(password, user.password);
     if (!result) {
       return res.status(403).send('<p>Invalid Password</p><a href=/login>here</a>');
     }
@@ -111,7 +112,7 @@ const postUser = function(email, password, users, action, req, res) {
     users[userID] = {
         id: userID,
         email: email,
-        password: password
+        password: hash
     };
   }
   req.session.user_id = userID;
@@ -194,19 +195,12 @@ app.put("/urls", (req, res) => {
       };
     }
     req.session.user_id = userID;
+    console.log(1);
     res.redirect('urls');
   }
 });
 
-app.get("/urls/:id/edit", (req, res) => {
-  const userID = req.session.user_id;
-  if (!userID) {
-    return res.status(400).send('<p>Please login to continue.</p><a href="/login">Login</a>');
-  }
-  res.redirect('/urls');
-});
-
-app.post("/urls/:id/edit", (req, res) => {
+app.put("/urls/:id", (req, res) => {
   let longURL = req.body.longURL;
   let id = req.params.id;
   const link = "/urls/" + id;
@@ -266,7 +260,7 @@ app.get("/u/:id", (req, res) => {
 
 //Delete URL
 //Here uses the method-override delete
-app.delete("/urls/:id/delete", (req, res) => {
+app.delete("/urls/:id", (req, res) => {
   delete urlDatabase[req.params.id];
   res.redirect('/urls');
 });
@@ -275,7 +269,6 @@ app.delete("/urls/:id/delete", (req, res) => {
 //Clearing cookies
 app.post('/logout', (req, res) => {
   req.session = null;
-  res.clearcookies('user_id');
   res.redirect('/login');
 });
 

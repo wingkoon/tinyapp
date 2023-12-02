@@ -15,12 +15,12 @@ const users = {
     abcde5: {
       id: "abcde5",
       email: "smith@example.com",
-      password: "purple-monkey-dinosaur",
+      password: "$2a$09$co3MdbM0334sOcCi0eA9Uen17ajHrqJ7nZZJaGs4H0fP4hJ/m9LJ6",
     },
     fghij6: {
       id: "fghij6",
       email: "mary@example.com",
-      password: "dishwasher-funk",
+      password: "$2a$09$co3MdbM0334sOcCi0eA9Ue7.c0mPaSS4FTTO657uXEhwNVI50MavG",
     },
   };
 
